@@ -126,6 +126,48 @@ const useThirdPersonCamera = (
   return { cameraPosition, setCameraPosition, cameraTarget, setCameraTarget }
 }
 
+const pointer = {
+  clicked: false
+}
+addEventListener("pointerdown", () => (pointer.clicked = true))
+addEventListener("pointerup", () => (pointer.clicked = false))
+
+const useSeekTarget = (
+  name: string,
+  nextMoviment: Vector3,
+  position: Vector3,
+  setPosition: Dispatch<SetStateAction<Vector3>>,
+  quaternion: Quaternion,
+  setQuaternion: Dispatch<SetStateAction<Quaternion>>,
+  target: Vector3 | null,
+  setTarget: Dispatch<SetStateAction<Vector3 | null>>
+) => {
+  useFrame(({ mouse, raycaster, camera, scene }) => {
+    raycaster.far = Infinity
+    raycaster.setFromCamera(mouse, camera)
+    const intersection = getInteresection(
+      name,
+      raycaster.intersectObject(scene)
+    )
+    if (intersection && pointer.clicked) setTarget(intersection.point)
+    if (!target) return
+    const distance = new Vector3()
+      .copy(target)
+      .setY(0)
+      .sub(new Vector3().copy(position).setY(0))
+    const direction = new Vector3().copy(distance).normalize()
+    const length = distance.length()
+    setQuaternion(hid =>
+      hid.slerp(
+        new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), direction),
+        0.1
+      )
+    )
+    setPosition(hid => hid.add(nextMoviment))
+    if (length < 1) setTarget(null!)
+  })
+}
+
 export default (
   name: string,
   velocity: number,
@@ -134,6 +176,7 @@ export default (
 ) => {
   const [position, setPosition] = useState<Vector3>(new Vector3())
   const [quaternion, setQuaternion] = useState<Quaternion>(new Quaternion())
+  const [target, setTarget] = useState<Vector3 | null>(null)
   useSetupVerticalRotation(setQuaternion)
   const { nextMoviment } = usePossibleMoves(
     name,
@@ -149,6 +192,16 @@ export default (
     position,
     quaternion
   )
+  useSeekTarget(
+    name,
+    nextMoviment.towards,
+    position,
+    setPosition,
+    quaternion,
+    setQuaternion,
+    target,
+    setTarget
+  )
   useFrame(() =>
     setEntityState(entity => {
       entity.position.copy(position)
@@ -156,5 +209,12 @@ export default (
       return entity
     })
   )
-  return { position, quaternion, nextMoviment, cameraPosition, cameraTarget }
+  return {
+    position,
+    quaternion,
+    nextMoviment,
+    target,
+    cameraPosition,
+    cameraTarget
+  }
 }

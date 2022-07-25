@@ -1,4 +1,4 @@
-import { Canvas, useThree } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import {
   ACESFilmicToneMapping,
   AnimationAction,
@@ -33,7 +33,7 @@ const CeramicMaterial = new MeshStandardMaterial({
   metalness: 0
 })
 
-const Model = () => {
+const Model = ({ target }: { target: Vector3 | null }) => {
   const [entityState, setEntityState] = useState<Group>(new Group())
   const [animations, setAnimations] = useState<{
     mixer: AnimationMixer
@@ -42,7 +42,7 @@ const Model = () => {
       run: AnimationAction
     }
   }>(null!)
-  useFiniteStateMachine(setAnimations)
+  useFiniteStateMachine(setAnimations, target)
   useEffect(
     () =>
       new GLTFLoader()
@@ -83,12 +83,39 @@ const Model = () => {
 
 const Entity = () => {
   const [entityState, setEntityState] = useState<Group>(null!)
-  useEntityBehaviors("player", 0.2, new Vector3(0, 0.75, 0), setEntityState)
+  const [targetRef, setTargetRef] = useState<Mesh>(null!)
+  const { target } = useEntityBehaviors(
+    "player",
+    0.1,
+    new Vector3(0, 0.75, 0),
+    setEntityState
+  )
+  useFrame(() =>
+    setTargetRef(hid => {
+      hid.name = "player"
+      hid.visible = true
+      if (target) hid.position.copy(target)
+      else hid.visible = false
+      return hid
+    })
+  )
   return (
-    <group ref={setEntityState}>
-      <Model />
-      <pointLight position={[0, 0.75, 0]} args={["red", 13, 2]} castShadow />
-    </group>
+    <>
+      <group ref={setEntityState}>
+        <Model target={target} />
+        <pointLight position={[0, 0.75, 0]} args={["red", 13, 2]} castShadow />
+      </group>
+      <mesh ref={setTargetRef}>
+        <sphereGeometry args={[0.2]} />
+        <meshPhysicalMaterial
+          roughness={0}
+          metalness={0}
+          color="black"
+          clearcoat={1}
+          clearcoatRoughness={0}
+        />
+      </mesh>
+    </>
   )
 }
 
