@@ -97,6 +97,7 @@ const usePossibleMoves = (
   })
   return { nextMoviment }
 }
+
 const useThirdPersonCamera = (
   name: string,
   eyesPosition: Vector3,
@@ -108,24 +109,16 @@ const useThirdPersonCamera = (
   useFrame(({ camera, raycaster, scene }) => {
     camera.position.copy(cameraPosition)
     camera.lookAt(cameraTarget)
-
-    setCameraPosition(current =>
-      current.lerp(
-        new Vector3(0, 2, -2).applyQuaternion(quaternion).add(position),
-        0.1
-      )
-    )
-    setCameraTarget(current =>
-      current.lerp(
-        new Vector3()
-          .copy(eyesPosition)
-          .add(new Vector3(0, 0, 2))
-          .applyQuaternion(quaternion)
-          .add(position),
-        0.5
-      )
-    )
-
+    const newPosition = new Vector3(0, 2, -2)
+      .applyQuaternion(quaternion)
+      .add(position)
+    const newTarget = new Vector3()
+      .copy(eyesPosition)
+      .add(new Vector3(0, 0, 2))
+      .applyQuaternion(quaternion)
+      .add(position)
+    setCameraPosition(current => current.lerp(newPosition, 0.1))
+    setCameraTarget(current => current.lerp(newTarget, 0.5))
     const directionVector = new Vector3().copy(camera.position).sub(position)
     const distanceToCamera = new Vector3().copy(directionVector).length()
     const origin = new Vector3().copy(eyesPosition).add(position)
@@ -133,7 +126,7 @@ const useThirdPersonCamera = (
     raycaster.far = distanceToCamera
     raycaster.set(origin, direction)
     const wall = getInteresection(name, raycaster.intersectObject(scene))
-    if (wall) setCameraPosition(current => current.lerp(wall.point, 1))
+    if (wall) setCameraPosition(current => current.lerp(wall.point, 0.5))
   })
 }
 
