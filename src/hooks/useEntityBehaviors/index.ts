@@ -46,8 +46,8 @@ interface AllowedMovementInterface {
   backwards: boolean
 }
 const BASE_DIRECTIONS = [
-  { direction: "towards", target: new Vector3(0, 0, 1) },
-  { direction: "backwards", target: new Vector3(0, 0, -1) }
+  { direction: "towards", lookAt: new Vector3(0, 0, 1) },
+  { direction: "backwards", lookAt: new Vector3(0, 0, -1) }
 ]
 
 const usePossibleMoves = (
@@ -70,8 +70,8 @@ const usePossibleMoves = (
     if (inputs.KeyW) setPosition(current => current.add(nextMoviment.towards))
     if (inputs.KeyS) setPosition(current => current.add(nextMoviment.backwards))
     const rayOrigin = new Vector3().copy(eyesPosition).add(position)
-    BASE_DIRECTIONS.forEach(({ direction, target }) => {
-      target.applyQuaternion(quaternion)
+    BASE_DIRECTIONS.forEach(({ direction, lookAt }) => {
+      const target = new Vector3().copy(lookAt).applyQuaternion(quaternion)
       raycaster.far = 0.5
       raycaster.set(rayOrigin, target)
       const wall = getInteresection(name, raycaster.intersectObject(scene))
