@@ -9,9 +9,8 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
-  MeshPhysicalMaterial,
   MeshStandardMaterial,
-  PlaneGeometry,
+  PlaneBufferGeometry,
   sRGBEncoding,
   Vector3
 } from "three"
@@ -27,18 +26,10 @@ const hdri = new RGBELoader().load(
   texture => (texture.mapping = EquirectangularReflectionMapping)
 )
 
-const CeramicMaterial = new MeshPhysicalMaterial({
+const CeramicMaterial = new MeshStandardMaterial({
   color: "white",
   roughness: 0,
-  metalness: 0,
-  specularIntensity: 1,
-  reflectivity: 1,
-  sheen: 2,
-  sheenColor: new Color("red")
-})
-const InvisibleMaterial = new MeshBasicMaterial({
-  opacity: 0,
-  transparent: true
+  metalness: 0
 })
 
 const Model = () => {
@@ -63,7 +54,11 @@ const Model = () => {
           scene.traverse(obj => {
             if (obj instanceof Mesh) {
               if (obj.name === "Beta_Surface") obj.material = CeramicMaterial
-              if (obj.name === "Beta_Joints") obj.material = InvisibleMaterial
+              if (obj.name === "Beta_Joints") {
+                obj.visible = false
+                obj.geometry.dispose()
+                obj.material.dispose()
+              }
             }
           })
           const mixer = new AnimationMixer(scene)
@@ -96,7 +91,7 @@ const Entity = () => {
 }
 
 const EnvironmentStyles = {
-  geometry: new PlaneGeometry(300, 300, 50, 50),
+  geometry: new PlaneBufferGeometry(300, 300, 50, 50),
   material: new MeshBasicMaterial({
     color: "black",
     wireframe: true
@@ -130,12 +125,15 @@ const useSetupScene = () => {
     gl.toneMapping = ACESFilmicToneMapping
     gl.toneMappingExposure = 1
     gl.shadowMap.enabled = true
-    gl.setPixelRatio(devicePixelRatio)
+    gl.physicallyCorrectLights = true
+    gl.setPixelRatio(Math.min(devicePixelRatio, 2) * 0.9)
     scene.background = new Color("rgb(240,195,185)")
     scene.environment = hdri
-    scene.fog = new Fog("rgb(240,195,185)", 0, 80)
+    scene.fog = new Fog("rgb(240,195,185)", 0, 50)
     camera.position.set(0, 2, 3)
     camera.lookAt(0, 0, 0)
+    camera.near = 1
+    camera.far = 50
   })
 }
 
@@ -152,7 +150,7 @@ const Scene = () => {
 export const MyApp = () => (
   <Layout>
     <Suspense>
-      <Canvas gl={{ antialias: true }}>
+      <Canvas gl={{ antialias: true, powerPreference: "high-performance" }}>
         <Scene />
       </Canvas>
     </Suspense>

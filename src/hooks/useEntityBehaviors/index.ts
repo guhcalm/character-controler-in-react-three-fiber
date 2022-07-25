@@ -197,3 +197,18 @@ export default (
   )
   return { position, normal, quaternion, nextMoviment }
 }
+
+/* on main 
+const worker = new Worker("worker.js")
+worker.postMessage({
+  some_data: "foo",
+  some_more_data: "bar"
+})
+
+worker.onmessage = (e: {data: {some_data, some_more_data}}) => {}
+*/
+
+/* on worker
+self.addEventListener("message", () => {
+  self.postMessage({type: "results", data: {...}})
+}) */
