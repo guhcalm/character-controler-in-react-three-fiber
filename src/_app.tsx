@@ -32,7 +32,9 @@ const CeramicMaterial = new MeshPhysicalMaterial({
   roughness: 0,
   metalness: 0,
   specularIntensity: 1,
-  reflectivity: 1
+  reflectivity: 1,
+  sheen: 2,
+  sheenColor: new Color("red")
 })
 const InvisibleMaterial = new MeshBasicMaterial({
   opacity: 0,
