@@ -132,7 +132,7 @@ const useSetupScene = () => {
     scene.fog = new Fog("rgb(240,195,185)", 0, 50)
     camera.position.set(0, 2, 3)
     camera.lookAt(0, 0, 0)
-    camera.near = 1
+    camera.near = 2
     camera.far = 50
   })
 }

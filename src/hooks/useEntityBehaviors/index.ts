@@ -11,13 +11,12 @@ const inputs = {
 addEventListener("keydown", ({ code }) => (inputs[code] = true))
 addEventListener("keyup", ({ code }) => (inputs[code] = false))
 
+const rotationOnVertical = (angle: number, vertical: Quaternion) =>
+  new Quaternion().copy(vertical).setFromAxisAngle(new Vector3(0, 1, 0), angle)
+
 const useSetupVerticalRotation = (
   setQuaternion: Dispatch<SetStateAction<Quaternion>>
 ) => {
-  const rotationOnVertical = (angle: number, vertical: Quaternion) =>
-    new Quaternion()
-      .copy(vertical)
-      .setFromAxisAngle(new Vector3(0, 1, 0), angle)
   useFrame(() => {
     if (inputs.KeyA)
       setQuaternion(current =>
@@ -38,20 +37,6 @@ const getInteresection = (
     ({ object }) => object instanceof Mesh && object.name !== name
   )[0] as Intersection<Object3D<Event>>
 
-const useSetupNormal = (
-  name: string,
-  position: Vector3,
-  normal: Vector3,
-  setNormal: Dispatch<SetStateAction<Vector3>>
-) =>
-  useFrame(({ raycaster, scene }) => {
-    raycaster.far = 1
-    raycaster.set(position, new Vector3(0, -1, 0))
-    const target = getInteresection(name, raycaster.intersectObject(scene))
-    if (target) return setNormal(normal.lerp(target?.face?.normal, 0.1))
-    setNormal(current => current.lerp(new Vector3(0, 1, 0), 0.1))
-  })
-
 interface NextPositionInterface {
   towards: Vector3
   backwards: Vector3
@@ -63,10 +48,12 @@ const usePossibleMoves = (
   eyesPosition: Vector3,
   position: Vector3,
   setPosition: Dispatch<SetStateAction<Vector3>>,
-  quaternion: Quaternion,
-  nextMoviment: NextPositionInterface,
-  setNextMoviment: Dispatch<SetStateAction<NextPositionInterface>>
+  quaternion: Quaternion
 ) => {
+  const [nextMoviment, setNextMoviment] = useState<NextPositionInterface>({
+    towards: new Vector3(),
+    backwards: new Vector3()
+  })
   const [allowedMoves, setAllowedMoves] = useState<{
     towards: boolean
     backwards: boolean
@@ -123,6 +110,7 @@ const usePossibleMoves = (
       }))
     })
   })
+  return { nextMoviment }
 }
 const useThirdPersonCamera = (
   name: string,
@@ -169,23 +157,15 @@ export default (
   setEntityState: Dispatch<SetStateAction<Group>>
 ) => {
   const [position, setPosition] = useState<Vector3>(new Vector3())
-  const [normal, setNormal] = useState<Vector3>(new Vector3(0, 1, 0))
   const [quaternion, setQuaternion] = useState<Quaternion>(new Quaternion())
-  const [nextMoviment, setNextMoviment] = useState<NextPositionInterface>({
-    towards: new Vector3(),
-    backwards: new Vector3()
-  })
-  useSetupNormal(name, position, normal, setNormal)
   useSetupVerticalRotation(setQuaternion)
-  usePossibleMoves(
+  const { nextMoviment } = usePossibleMoves(
     name,
     velocity,
     eyesPosition,
     position,
     setPosition,
-    quaternion,
-    nextMoviment,
-    setNextMoviment
+    quaternion
   )
   useThirdPersonCamera(name, eyesPosition, position, quaternion)
   useFrame(() =>
@@ -195,7 +175,7 @@ export default (
       return entity
     })
   )
-  return { position, normal, quaternion, nextMoviment }
+  return { position, quaternion, nextMoviment }
 }
 
 /* on main 
