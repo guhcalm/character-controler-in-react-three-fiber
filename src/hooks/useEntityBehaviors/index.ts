@@ -80,10 +80,7 @@ const usePossibleMoves = (
       raycaster.far = 10
       raycaster.set(
         rayOrigin,
-        new Vector3()
-          .copy(new Vector3().copy(position).add(target))
-          .sub(rayOrigin)
-          .normalize()
+        new Vector3().copy(position).add(target).sub(rayOrigin).normalize()
       )
       const ground = getInteresection(name, raycaster.intersectObject(scene))
       if (ground && allowedMoves[direction])
@@ -95,10 +92,7 @@ const usePossibleMoves = (
             .multiplyScalar(velocity)
         }))
       else
-        setNextMoviment(current => ({
-          ...current,
-          [direction]: new Vector3()
-        }))
+        setNextMoviment(current => ({ ...current, [direction]: new Vector3() }))
     })
   })
   return { nextMoviment }
