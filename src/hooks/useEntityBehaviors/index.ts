@@ -45,6 +45,10 @@ interface AllowedMovementInterface {
   towards: boolean
   backwards: boolean
 }
+const BASE_DIRECTIONS = [
+  { direction: "towards", target: new Vector3(0, 0, 1) },
+  { direction: "backwards", target: new Vector3(0, 0, -1) }
+]
 
 const usePossibleMoves = (
   name: string,
@@ -66,19 +70,12 @@ const usePossibleMoves = (
     if (inputs.KeyW) setPosition(current => current.add(nextMoviment.towards))
     if (inputs.KeyS) setPosition(current => current.add(nextMoviment.backwards))
     const rayOrigin = new Vector3().copy(eyesPosition).add(position)
-    ;[
-      { direction: "towards", target: new Vector3(0, 0, 1) },
-      { direction: "backwards", target: new Vector3(0, 0, -1) }
-    ].forEach(({ direction, target }) => {
+    BASE_DIRECTIONS.forEach(({ direction, target }) => {
       target.applyQuaternion(quaternion)
       raycaster.far = 0.5
       raycaster.set(rayOrigin, target)
       const wall = getInteresection(name, raycaster.intersectObject(scene))
-      if (wall)
-        setAllowedMoves(current => ({
-          ...current,
-          [direction]: false
-        }))
+      if (wall) setAllowedMoves(current => ({ ...current, [direction]: false }))
       else setAllowedMoves(current => ({ ...current, [direction]: true }))
       raycaster.far = 10
       raycaster.set(
@@ -91,19 +88,16 @@ const usePossibleMoves = (
       const ground = getInteresection(name, raycaster.intersectObject(scene))
       if (ground && allowedMoves[direction])
         setNextMoviment(current => ({
-          ...nextMoviment,
-          [direction]: current[direction].copy(
-            new Vector3()
-              .copy(ground.point)
-              .sub(position)
-              .normalize()
-              .multiplyScalar(velocity)
-          )
+          ...current,
+          [direction]: ground.point
+            .sub(position)
+            .normalize()
+            .multiplyScalar(velocity)
         }))
       else
         setNextMoviment(current => ({
-          ...nextMoviment,
-          [direction]: current[direction].copy(new Vector3())
+          ...current,
+          [direction]: new Vector3()
         }))
     })
   })
