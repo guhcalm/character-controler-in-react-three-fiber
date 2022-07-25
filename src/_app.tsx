@@ -9,6 +9,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   sRGBEncoding,
@@ -26,10 +27,12 @@ const hdri = new RGBELoader().load(
   texture => (texture.mapping = EquirectangularReflectionMapping)
 )
 
-const CeramicMaterial = new MeshStandardMaterial({
+const CeramicMaterial = new MeshPhysicalMaterial({
   color: "white",
   roughness: 0,
-  metalness: 0
+  metalness: 0,
+  specularIntensity: 1,
+  reflectivity: 1
 })
 const InvisibleMaterial = new MeshBasicMaterial({
   opacity: 0,
