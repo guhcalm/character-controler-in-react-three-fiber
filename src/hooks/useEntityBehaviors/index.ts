@@ -19,13 +19,9 @@ const useSetupVerticalRotation = (
 ) => {
   useFrame(() => {
     if (inputs.KeyA)
-      setQuaternion(in =>
-        in.multiply(rotationOnVertical(0.05, in))
-      )
+      setQuaternion(hid => hid.multiply(rotationOnVertical(0.05, hid)))
     if (inputs.KeyD)
-      setQuaternion(current =>
-        current.multiply(rotationOnVertical(-0.05, current))
-      )
+      setQuaternion(hid => hid.multiply(rotationOnVertical(-0.05, hid)))
   })
 }
 
@@ -67,16 +63,16 @@ const usePossibleMoves = (
     backwards: false
   })
   useFrame(({ raycaster, scene }) => {
-    if (inputs.KeyW) setPosition(current => current.add(nextMoviment.towards))
-    if (inputs.KeyS) setPosition(current => current.add(nextMoviment.backwards))
+    if (inputs.KeyW) setPosition(hid => hid.add(nextMoviment.towards))
+    if (inputs.KeyS) setPosition(hid => hid.add(nextMoviment.backwards))
     const rayOrigin = new Vector3().copy(eyesPosition).add(position)
     BASE_DIRECTIONS.forEach(({ direction, lookAt }) => {
       const target = new Vector3().copy(lookAt).applyQuaternion(quaternion)
       raycaster.far = 0.5
       raycaster.set(rayOrigin, target)
       const wall = getInteresection(name, raycaster.intersectObject(scene))
-      if (wall) setAllowedMoves(current => ({ ...current, [direction]: false }))
-      else setAllowedMoves(current => ({ ...current, [direction]: true }))
+      if (wall) setAllowedMoves(hid => ({ ...hid, [direction]: false }))
+      else setAllowedMoves(hid => ({ ...hid, [direction]: true }))
       raycaster.far = 10
       raycaster.set(
         rayOrigin,
@@ -84,15 +80,14 @@ const usePossibleMoves = (
       )
       const ground = getInteresection(name, raycaster.intersectObject(scene))
       if (ground && allowedMoves[direction])
-        setNextMoviment(current => ({
-          ...current,
+        setNextMoviment(hid => ({
+          ...hid,
           [direction]: ground.point
             .sub(position)
             .normalize()
             .multiplyScalar(velocity)
         }))
-      else
-        setNextMoviment(current => ({ ...current, [direction]: new Vector3() }))
+      else setNextMoviment(hid => ({ ...hid, [direction]: new Vector3() }))
     })
   })
   return { nextMoviment }
@@ -117,8 +112,8 @@ const useThirdPersonCamera = (
       .add(new Vector3(0, 0, 2))
       .applyQuaternion(quaternion)
       .add(position)
-    setCameraPosition(current => current.lerp(newPosition, 0.1))
-    setCameraTarget(current => current.lerp(newTarget, 0.5))
+    setCameraPosition(hid => hid.lerp(newPosition, 0.1))
+    setCameraTarget(hid => hid.lerp(newTarget, 0.5))
     const directionVector = new Vector3().copy(camera.position).sub(position)
     const distanceToCamera = new Vector3().copy(directionVector).length()
     const origin = new Vector3().copy(eyesPosition).add(position)
@@ -126,7 +121,7 @@ const useThirdPersonCamera = (
     raycaster.far = distanceToCamera
     raycaster.set(origin, direction)
     const wall = getInteresection(name, raycaster.intersectObject(scene))
-    if (wall) setCameraPosition(current => current.lerp(wall.point, 0.5))
+    if (wall) setCameraPosition(hid => hid.lerp(wall.point, 0.5))
   })
   return { cameraPosition, setCameraPosition, cameraTarget, setCameraTarget }
 }

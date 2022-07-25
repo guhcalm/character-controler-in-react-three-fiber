@@ -23,17 +23,17 @@ export default (
   >
 ) =>
   useFrame(({ clock }) =>
-    setAnimations(current => {
-      if (!current) return current
-      current.mixer.update(clock.getDelta())
-      const { idle, run } = current.actions
+    setAnimations(hid => {
+      if (!hid) return hid
+      hid.mixer.update(clock.getDelta())
+      const { idle, run } = hid.actions
       if (inputs.KeyW || inputs.KeyS) {
         if (idle.weight > 0) idle.weight -= 0.1
         if (run.weight < 1) run.weight += 0.1
-        return current
+        return hid
       }
       if (run.weight > 0) run.weight -= 0.1
       if (idle.weight < 1) idle.weight += 0.1
-      return current
+      return hid
     })
   )
