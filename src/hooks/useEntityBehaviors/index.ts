@@ -41,6 +41,10 @@ interface NextPositionInterface {
   towards: Vector3
   backwards: Vector3
 }
+interface AllowedMovementInterface {
+  towards: boolean
+  backwards: boolean
+}
 
 const usePossibleMoves = (
   name: string,
@@ -54,46 +58,39 @@ const usePossibleMoves = (
     towards: new Vector3(),
     backwards: new Vector3()
   })
-  const [allowedMoves, setAllowedMoves] = useState<{
-    towards: boolean
-    backwards: boolean
-  }>({ towards: false, backwards: false })
+  const [allowedMoves, setAllowedMoves] = useState<AllowedMovementInterface>({
+    towards: false,
+    backwards: false
+  })
   useFrame(({ raycaster, scene }) => {
-    if (inputs.KeyW) setPosition(position.add(nextMoviment.towards))
-    if (inputs.KeyS) setPosition(position.add(nextMoviment.backwards))
-    const rayOrigin = new Vector3()
-      .copy(eyesPosition)
-      .applyQuaternion(quaternion)
-      .add(position)
-    // check permission
+    if (inputs.KeyW) setPosition(current => current.add(nextMoviment.towards))
+    if (inputs.KeyS) setPosition(current => current.add(nextMoviment.backwards))
+    const rayOrigin = new Vector3().copy(eyesPosition).add(position)
     ;[
       { direction: "towards", target: new Vector3(0, 0, 1) },
       { direction: "backwards", target: new Vector3(0, 0, -1) }
     ].forEach(({ direction, target }) => {
+      target.applyQuaternion(quaternion)
       raycaster.far = 0.5
-      raycaster.set(rayOrigin, target.applyQuaternion(quaternion))
+      raycaster.set(rayOrigin, target)
       const wall = getInteresection(name, raycaster.intersectObject(scene))
       if (wall)
-        return setAllowedMoves(current => ({ ...current, [direction]: false }))
-      return setAllowedMoves(current => ({ ...current, [direction]: true }))
-    })
-    // seek next move
-    ;[
-      { direction: "towards", target: new Vector3(0, 0, 1) },
-      { direction: "backwards", target: new Vector3(0, 0, -1) }
-    ].forEach(({ direction, target }) => {
-      const nextStep = new Vector3()
-        .copy(position)
-        .add(target.applyQuaternion(quaternion).multiplyScalar(velocity))
-      const rayDirection = new Vector3()
-        .copy(nextStep)
-        .sub(rayOrigin)
-        .normalize()
+        setAllowedMoves(current => ({
+          ...current,
+          [direction]: false
+        }))
+      else setAllowedMoves(current => ({ ...current, [direction]: true }))
       raycaster.far = 10
-      raycaster.set(rayOrigin, rayDirection)
+      raycaster.set(
+        rayOrigin,
+        new Vector3()
+          .copy(new Vector3().copy(position).add(target))
+          .sub(rayOrigin)
+          .normalize()
+      )
       const ground = getInteresection(name, raycaster.intersectObject(scene))
       if (ground && allowedMoves[direction])
-        return setNextMoviment(current => ({
+        setNextMoviment(current => ({
           ...nextMoviment,
           [direction]: current[direction].copy(
             new Vector3()
@@ -103,11 +100,11 @@ const usePossibleMoves = (
               .multiplyScalar(velocity)
           )
         }))
-
-      return setNextMoviment(current => ({
-        ...nextMoviment,
-        [direction]: current[direction].copy(new Vector3())
-      }))
+      else
+        setNextMoviment(current => ({
+          ...nextMoviment,
+          [direction]: current[direction].copy(new Vector3())
+        }))
     })
   })
   return { nextMoviment }
@@ -132,7 +129,9 @@ const useThirdPersonCamera = (
     )
     setCameraTarget(current =>
       current.lerp(
-        new Vector3(0, eyesPosition.y, 2)
+        new Vector3()
+          .copy(eyesPosition)
+          .add(new Vector3(0, 0, 2))
           .applyQuaternion(quaternion)
           .add(position),
         0.5
