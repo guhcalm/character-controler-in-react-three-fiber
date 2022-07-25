@@ -59,6 +59,7 @@ const Model = () => {
               if (obj.name === "Beta_Joints") {
                 obj.geometry.dispose()
                 obj.visible = false
+                obj.matrixAutoUpdate = false
               }
             }
           })
@@ -115,7 +116,12 @@ position.needsUpdate = true
 geometry.computeVertexNormals()
 
 const Environment = () => (
-  <mesh {...EnvironmentStyles} receiveShadow castShadow />
+  <mesh
+    {...EnvironmentStyles}
+    receiveShadow
+    castShadow
+    matrixAutoUpdate={false}
+  />
 )
 
 const useSetupScene = () => {
