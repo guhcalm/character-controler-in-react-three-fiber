@@ -17,6 +17,7 @@ import {
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { Suspense, useEffect, useState } from "react"
 import { useEntityBehaviors, useFiniteStateMachine } from "./hooks"
 import { Layout } from "./components"
@@ -53,11 +54,11 @@ const Model = () => {
         .load("./assets/model/model.glb", ({ scene, animations }) => {
           scene.traverse(obj => {
             if (obj instanceof Mesh) {
+              obj.material.dispose()
               if (obj.name === "Beta_Surface") obj.material = CeramicMaterial
               if (obj.name === "Beta_Joints") {
-                obj.visible = false
                 obj.geometry.dispose()
-                obj.material.dispose()
+                obj.visible = false
               }
             }
           })
@@ -134,6 +135,7 @@ const useSetupScene = () => {
     camera.lookAt(0, 0, 0)
     camera.near = 1.5
     camera.far = 50
+    new OrbitControls(camera, gl.domElement).update()
   })
 }
 

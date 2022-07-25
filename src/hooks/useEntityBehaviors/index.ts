@@ -102,7 +102,7 @@ const useThirdPersonCamera = (
   const [cameraPosition, setCameraPosition] = useState<Vector3>(new Vector3())
   const [cameraTarget, setCameraTarget] = useState<Vector3>(new Vector3())
   useFrame(({ camera, raycaster, scene }) => {
-    camera.position.copy(cameraPosition)
+    camera.position.lerp(cameraPosition, 0.1)
     camera.lookAt(cameraTarget)
     const newPosition = new Vector3(0, 2, -2)
       .applyQuaternion(quaternion)
@@ -112,7 +112,7 @@ const useThirdPersonCamera = (
       .add(new Vector3(0, 0, 2))
       .applyQuaternion(quaternion)
       .add(position)
-    setCameraPosition(hid => hid.lerp(newPosition, 0.1))
+    setCameraPosition(hid => hid.lerp(newPosition, 0.2))
     setCameraTarget(hid => hid.lerp(newTarget, 0.5))
     const directionVector = new Vector3().copy(camera.position).sub(position)
     const distanceToCamera = new Vector3().copy(directionVector).length()
