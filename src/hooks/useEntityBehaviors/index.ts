@@ -19,8 +19,8 @@ const useSetupVerticalRotation = (
 ) => {
   useFrame(() => {
     if (inputs.KeyA)
-      setQuaternion(current =>
-        current.multiply(rotationOnVertical(0.05, current))
+      setQuaternion(in =>
+        in.multiply(rotationOnVertical(0.05, in))
       )
     if (inputs.KeyD)
       setQuaternion(current =>
@@ -128,6 +128,7 @@ const useThirdPersonCamera = (
     const wall = getInteresection(name, raycaster.intersectObject(scene))
     if (wall) setCameraPosition(current => current.lerp(wall.point, 0.5))
   })
+  return { cameraPosition, setCameraPosition, cameraTarget, setCameraTarget }
 }
 
 export default (
@@ -147,7 +148,12 @@ export default (
     setPosition,
     quaternion
   )
-  useThirdPersonCamera(name, eyesPosition, position, quaternion)
+  const { cameraPosition, cameraTarget } = useThirdPersonCamera(
+    name,
+    eyesPosition,
+    position,
+    quaternion
+  )
   useFrame(() =>
     setEntityState(entity => {
       entity.position.copy(position)
@@ -155,20 +161,5 @@ export default (
       return entity
     })
   )
-  return { position, quaternion, nextMoviment }
+  return { position, quaternion, nextMoviment, cameraPosition, cameraTarget }
 }
-
-/* on main 
-const worker = new Worker("worker.js")
-worker.postMessage({
-  some_data: "foo",
-  some_more_data: "bar"
-})
-
-worker.onmessage = (e: {data: {some_data, some_more_data}}) => {}
-*/
-
-/* on worker
-self.addEventListener("message", () => {
-  self.postMessage({type: "results", data: {...}})
-}) */
