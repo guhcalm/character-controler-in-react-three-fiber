@@ -9,6 +9,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneBufferGeometry,
   sRGBEncoding,
@@ -120,9 +121,11 @@ const Entity = () => {
 
 const EnvironmentStyles = {
   geometry: new PlaneBufferGeometry(300, 300, 50, 50),
-  material: new MeshBasicMaterial({
-    color: "black",
-    wireframe: true
+  material: new MeshPhysicalMaterial({
+    color: "white",
+    roughness: 0,
+    metalness: 0,
+    specularIntensity: 0
   })
 }
 const { geometry } = EnvironmentStyles
@@ -162,11 +165,11 @@ const useSetupScene = () => {
     gl.setPixelRatio(Math.min(devicePixelRatio, 2) * 0.9)
     scene.background = new Color("rgb(240,195,185)")
     scene.environment = hdri
-    scene.fog = new Fog("rgb(240,195,185)", 0, 50)
+    scene.fog = new Fog("rgb(240,195,185)", 0, 80)
     camera.position.set(0, 2, 3)
     camera.lookAt(0, 0, 0)
     camera.near = 1.5
-    camera.far = 50
+    camera.far = 80
   })
 }
 
